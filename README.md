@@ -1,4 +1,4 @@
-﻿# Zero Trust Network Lab 🛡️
+# Zero Trust Network Lab 🛡️
 ### Kubernetes & Infrastructure-as-Code
 
 > A production-grade Zero Trust architecture on Kubernetes — namespace micro-segmentation, mTLS via Istio, OPA policy enforcement, WireGuard VPN, and automated security scanning via CI/CD.
@@ -12,25 +12,11 @@
 
 ---
 
-## What is Zero Trust?
+## 📌 Project Vision
 
-Traditional security assumes everything inside the network is safe. **Zero Trust assumes the opposite** — every connection must be authenticated and authorized, regardless of where it comes from.
-## Architecture Decisions
-See [docs/decisions/](docs/decisions/) for full ADRs explaining every major technical choice.
+This project extends the [hardened-infra](https://github.com/Khalil-secure/hardened-infra) lab into a full Zero Trust Kubernetes environment. Where the previous project hardened a single server, this one enforces Zero Trust across an entire distributed infrastructure — every service must authenticate, every connection is encrypted, every policy is enforced by code.
 
-> "Never trust, always verify."
-
-This lab implements Zero Trust across every layer of a Kubernetes cluster:
-
-| Layer | Tool | What it enforces |
-|---|---|---|
-| Network segmentation | Kubernetes NetworkPolicies | Deny-all by default, explicit allow rules |
-| Service identity | Istio + mTLS | Every service authenticates with a certificate |
-| Policy as code | OPA / Gatekeeper | No deployment without policy compliance |
-| Image scanning | Trivy (GitHub Actions) | No vulnerable images reach the cluster |
-| VPN | WireGuard | Encrypted site-to-site tunnel |
-| IaC | Terraform | Reproducible Oracle Cloud infra |
-| Observability | Loki + Grafana + Kiali | Real-time SOC dashboard |
+**Zero Trust principle:** Never trust, always verify — regardless of whether traffic is internal or external.
 
 ---
 
@@ -251,12 +237,7 @@ kubectl exec -n frontend deploy/frontend -- curl backend.backend.svc.cluster.loc
 
 **Khalil Ghiati** — Infrastructure & Security Engineer
 
-- GitHub: [@Khalil-secure](https://github.com/Khalil-secure)
-- Live project: [MailGuard](https://mail-guard-beta.vercel.app) — Phishing detection SaaS
+[![GitHub](https://img.shields.io/badge/GitHub-Khalil--secure-181717?logo=github)](https://github.com/Khalil-secure)
+[![Portfolio](https://img.shields.io/badge/Portfolio-khalilghiati.dev-0F4C81)](https://portfolio-khalil-secure.vercel.app)
 
----
-
-## Related Projects
-
-- **[MailGuard](https://github.com/Khalil-secure/mailguard)** — Production phishing detection SaaS with Google OAuth, JWT, PostgreSQL, HashiCorp Vault, and 5 threat intelligence engines. Live at [mail-guard-beta.vercel.app](https://mail-guard-beta.vercel.app)
-
+[![hardened-infra](https://img.shields.io/badge/Previous_Project-hardened--infra-0F4C81)](https://github.com/Khalil-secure/hardened-infra)
