@@ -59,7 +59,10 @@ This project extends the [hardened-infra](https://github.com/Khalil-secure/harde
                                │
                     Local dev machine
                     (Terraform + kubectl)
+
 ```
+## Architecture Decisions
+See [docs/decisions/](docs/decisions/) for full ADRs explaining every major technical choice.
 
 ---
 
@@ -241,3 +244,4 @@ kubectl exec -n frontend deploy/frontend -- curl backend.backend.svc.cluster.loc
 [![Portfolio](https://img.shields.io/badge/Portfolio-khalilghiati.dev-0F4C81)](https://portfolio-khalil-secure.vercel.app)
 
 [![hardened-infra](https://img.shields.io/badge/Previous_Project-hardened--infra-0F4C81)](https://github.com/Khalil-secure/hardened-infra)
+
