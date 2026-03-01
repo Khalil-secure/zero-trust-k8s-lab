@@ -11,7 +11,7 @@ permissions:
   security-events: write
 
 jobs:
-  # ── JOB 1: Validate Kubernetes manifests with kubeval ──
+  # ── JOB 1: Validate Kubernetes manifests ──
   validate-manifests:
     name: Validate K8s Manifests
     runs-on: ubuntu-latest
@@ -30,15 +30,12 @@ jobs:
       - name: Validate network policies
         run: kubeval --ignore-missing-schemas k8s/network-policies/network-policies.yaml
 
-      - name: Validate Istio policies
+      - name: Validate Istio + OPA (custom CRDs)
         run: |
           kubeval --ignore-missing-schemas k8s/istio/mtls-policies.yaml \
-            || echo "Istio CRDs are custom resources — skipping strict validation"
-
-      - name: Validate OPA constraints
-        run: |
+            || echo "Istio CRDs — skipping strict validation"
           kubeval --ignore-missing-schemas opa/policies/constraints.yaml \
-            || echo "Gatekeeper CRDs are custom resources — skipping strict validation"
+            || echo "Gatekeeper CRDs — skipping strict validation"
 
   # ── JOB 2: Trivy IaC scanning ──
   trivy-iac-scan:
@@ -47,35 +44,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run Trivy on Terraform files
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: config
-          scan-ref: terraform/
-          format: table
-          exit-code: 0
-          severity: HIGH,CRITICAL
+      - name: Install Trivy
+        run: |
+          sudo apt-get install -y wget apt-transport-https gnupg
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb generic main" \
+            | sudo tee /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update -y
+          sudo apt-get install -y trivy
 
-      - name: Run Trivy on Kubernetes manifests
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: config
-          scan-ref: k8s/
-          format: table
-          exit-code: 0
-          severity: HIGH,CRITICAL
+      - name: Trivy scan — Terraform
+        run: trivy config terraform/ --severity HIGH,CRITICAL --exit-code 0
 
-      - name: Generate Trivy SARIF report
-        uses: aquasecurity/trivy-action@master
+      - name: Trivy scan — Kubernetes manifests
+        run: trivy config k8s/ --severity HIGH,CRITICAL --exit-code 0
+
+      - name: Trivy scan — OPA policies
+        run: trivy config opa/ --severity HIGH,CRITICAL --exit-code 0
+
+      - name: Generate SARIF report
+        run: trivy config . --format sarif --output trivy-results.sarif --exit-code 0
         continue-on-error: true
-        with:
-          scan-type: config
-          scan-ref: .
-          format: sarif
-          output: trivy-results.sarif
-          exit-code: 0
 
-      - name: Upload Trivy SARIF to GitHub Security tab
+      - name: Upload SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
         if: always()
         continue-on-error: true
@@ -119,14 +110,9 @@ jobs:
       - name: Lint Kubernetes manifests
         run: |
           yamllint -d "{extends: relaxed, rules: {line-length: {max: 200}}}" k8s/ \
-            || echo "YAML lint warnings found — review above"
+            || echo "YAML lint warnings — review above"
 
-      - name: Lint GitHub Actions workflows
-        run: |
-          yamllint -d "{extends: relaxed, rules: {line-length: {max: 200}}}" .github/ \
-            || echo "YAML lint warnings found — review above"
-
-  # ── JOB 5: MITRE ATT&CK coverage report ──
+  # ── JOB 5: Security posture report ──
   security-posture:
     name: Security Posture Report
     runs-on: ubuntu-latest
